@@ -1,0 +1,100 @@
+        name OutString
+
+        cseg
+
+        public vidOutString     ; Вывод строки на экран в текущие координаты
+        public vidOutStringXY   ; Вывод строки на экран в заданные координаты
+
+
+        extrn  vidOutChrOfs
+
+        extrn  vidGetAddr
+        extrn  vidGotoXY
+        extrn  bTextAttr
+
+
+
+$include (:f1:video2.i80)
+
+
+
+;------------------------------------------------------------------------
+; Вывод строки на экран в текущие координаты
+;------------------------------------------------------------------------
+; на входе:
+;    BC         - строка, поддерживает командные последовательности:
+;                   <ЕSС>F<f><b>  - установка текущего цвета
+vidOutString:
+        mov     E, C
+        mov     D, B            ; DE - string
+        lda     bCurPosX
+        mov     L, A
+        lda     bCurPosY
+        mov     C, A
+        jmp     @doptstr
+
+;------------------------------------------------------------------------
+; Вывод строки на экран в заданные координаты [0..31, 0..23]
+;------------------------------------------------------------------------
+; на входе:
+;    [SP+2]     - x
+;    C          - y
+;    DE         - строка, поддерживает командные последовательности:
+;                   <ЕSС>F<f><b>  - установка текущего цвета
+vidOutStringXY:
+        pop     H
+        xthl                    ; L - x
+        ; L - x
+        ; C - y
+        ; DE - string
+        mov     A, L
+        sta     bCurPosX
+        mov     A, C
+        sta     bCurPosY
+  @doptstr:
+        push    D
+        mov     E, C
+        mov     C, L
+        call    vidGetAddr
+        pop     D
+        xchg
+        ; DE    - vidmem[x, y]
+        ; HL    - строка
+    @vprlp:
+        mov     A, M
+        inx     H
+        ora     A
+        jz      @done
+        cpi     27              ; упр. символ?
+        jz      @vprsc
+        call    vidOutChrOfs
+        lda     bCurPosX
+        inr     A
+        sta     bCurPosX
+        jmp     @vprlp
+    @done:
+        lda     bCurPosX
+        mov     C, A
+        lda     bCurPosY
+        mov     E, A
+        jmp     vidGotoXY
+  @vprsc: ; команда
+        mov     A, M
+        inx     H
+        cpi     'F'
+        jnz     @vprlp          ; других команд пока не поддерживаем
+        mov     A, M
+        ani     0Fh
+        inx     H
+        mov     C, A            ; C = foreground color
+        mov     A, M
+        inx     H
+        ani     0Fh
+        rlc
+        rlc
+        rlc
+        rlc                     ; A = background color
+        ora     C
+        sta     bTextAttr
+        jmp     @vprlp
+end

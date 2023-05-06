@@ -1,0 +1,90 @@
+        name VerticalLine
+
+        cseg
+
+        public vidHorLine
+        public vidHorLinRg
+
+
+        extrn  vidGetAddr
+        extrn  bTextAttr
+
+
+
+$include (:f1:video2.i80)
+
+;   [SP-2]      - y
+;   [SP-4]      - x
+;   C           - символ
+;   E           - count
+vidHorLine(ch, cnt)
+        mov     B, E            ; B - count
+        pop     H
+        pop     D               ; E - y
+        xthl                    ; L - x
+        mov     D, C
+        mov     C, L
+        call    vidGetAddr
+        mov     A, D
+        mov     C, B
+        xchg
+
+;------------------------------------------------------------------------
+; вывод повторяющегося символа в заданный адрес видеопамяти
+;------------------------------------------------------------------------
+; на входе:
+;       A       - символ
+;       DE      - адрес в массиве изображения
+;       C       - count
+;       grFont  - фонт 8x8
+;       curCol  - текущий цвет фона и текста
+; save: BC, HL
+vidHorLinRg:
+        push    B
+        push    H
+        ; получаем адрес символа в фонте
+        mov     L, A
+        mvi     H, 0
+        dad     H               ; *2
+        dad     H               ; *4
+        dad     H               ; *8
+        mov     A, C
+        lxi     B, GRFONT
+        dad     B               ; HL = grFont[symbol]
+        mov     C, A
+        ; DE - vidmem
+        ; HL - image
+        ;  C - count
+    @hrlsl:
+        ; копируем один символ
+        mvi     B, 8
+    @hrlsc:
+        mov     A, M
+        inx     H
+        stax    D
+        inx     D
+        dcr     B
+        jnz     @hrlsc
+        ; корректируем цвет
+        lxi     H, -8
+        dad     D
+        mov     A, H
+        xri     20h
+        mov     H, A            ; HL - адрес символа в массиве цвета
+        lda     curCol
+        mvi     B, 8
+    @hrhrc:
+        mov     M, A
+        inx     H
+        dcr     B
+        jnz     @hrhrc
+        ; переходим к копированию в след. позицию
+        lxi     H, -8
+        dad     D
+        dcr     C
+        jnz     @hrlsl
+        pop     H
+        pop     B
+        ret
+end
+

@@ -1,0 +1,12 @@
+/*
+  выход из программы в CP/M
+*/
+Exit: procedure external;
+end;
+
+
+/*
+  бипер
+*/
+Beep: procedure external;
+end;

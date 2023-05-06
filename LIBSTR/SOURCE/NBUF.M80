@@ -1,0 +1,10 @@
+        name nbuf
+
+        public BufNum
+
+
+        dseg
+
+  BufNum:       ds 8
+
+end

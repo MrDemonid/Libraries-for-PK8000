@@ -1,0 +1,52 @@
+
+$include (:f1:config.i80)
+
+
+; адреса буферов видеорежима
+
+IF MODE_CPM
+
+SCRBUF_ADDR equ 9800h   ; адрес буфера экрана (реж. 2)
+PIXBUF_ADDR equ 8000h   ; массив изображения для режима 2
+COLBUF_ADDR equ 0A000h  ; массив цвета для режима 2
+pFont8x8    equ 0F000h  ; адрес фонта 8x8 (хранится там системой)
+
+ELSE
+
+SCRBUF_ADDR equ 0D800h  ; адрес буфера экрана (реж. 2)
+PIXBUF_ADDR equ 0C000h  ; массив изображения для режима 2
+COLBUF_ADDR equ 0E000h  ; массив цвета для режима 2
+pFont8x8    equ 0B800h  ; адрес фонта 8x8 (хранится там системой)
+
+ENDIF
+
+
+flCurHide   equ 0FDBEh  ; флаг видимости/скрытия курсора (FF - скрыт)
+bCurBkGr    equ 0FA1Ch  ; символ фона под курсором
+pCurStored  equ 0FA1Eh  ; адрес видеопамяти сохраненного фона под курсором
+bCurPosX    equ 0FA21h  ; положение курсора на экране
+bCurPosY    equ 0FA22h
+
+bVideoMode  equ 0FD8Ch  ; номер текущего видеорежима
+
+
+;
+; блок параметров текущего видеорежима (VIDMODE)
+;
+pVideoParam equ 0FA00h  ; начало блока параметров
+VIDPARSIZE  equ 19      ; и его размер
+; сам блок
+bScrWidth   equ 0FA00h  ; полная ширина экрана, включая не отображаемые области
+bHideLeft   equ 0FA01h  ; кол. не отображаемых символов слева
+bLogWidth   equ 0FA02h  ; видимая ширина экрана
+bLogHeight  equ 0FA03h  ; кол. строк экрана
+bHideRight  equ 0FA04h  ; кол. не отображаемых символов справа
+pScrBuf0    equ 0FA05h  ; адрес буфера экрана реж. 0 и 1
+pTabColor   equ 0FA07h  ; адрес таб. цвета реж. 1
+pCharGen    equ 0FA09h  ; адрес знакогенератора реж. 0 и 1,
+pScrBuf2    equ pCharGen; или буфера экрана реж. 2
+pPixelsBuff equ 0FA0Fh  ; адрес массива изображения реж. 2
+pColorsBuff equ 0FA11h  ; адрес массива цвета реж. 2
+
+
+

@@ -1,0 +1,55 @@
+        name DEFFNT
+
+        cseg
+
+
+        public vidSetDefFont
+
+
+
+
+$include (:f1:video2.i80)
+
+
+
+
+; установка дефолтного знакогенератора из BIOS
+;------------------------------------------------------------------------
+; на входе:
+;    BC - адрес свободной памяти под функцию, начиная с 0x4000 и выше,
+;         не менее 26 байт
+vidSetDefFont:
+IF MODE_CPM
+        mov     A, B
+        cpi     40h
+        rc
+        push    B
+        mvi     E, @endfunc-@func+1
+        lxi     H, @func
+    @copy:
+        mov     A, M
+        stax    B
+        inx     B
+        inx     H
+        dcr     E
+        jnz     @copy
+        ; переходим на функцию
+        ret
+  @func:
+ENDIF
+        di
+        in      80h
+        push    PSW
+        mvi     A, 0FCh
+        out     80h
+        lxi     D, pFont8x8
+        lxi     H, 3800h
+        lxi     B, 256*8
+        call    5Ch
+        pop     PSW
+        out     80h
+        ei
+        ret
+  @endfunc:
+
+end

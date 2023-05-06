@@ -1,0 +1,144 @@
+/*
+  Ненужные функции закоментировать, иначе они будут добавлены
+  в результатирующий файл программы.
+*/
+
+/*
+  выбор диска
+  на входе:
+     nDisk  - номер диска: 0 - A, 1 - B, и тд.
+  на выходе:
+     0  - диска нет
+     >0 - диск в наличии
+*/
+Sel$Drv: procedure(nDisk) byte external;
+  declare
+    nDisk byte;
+end;
+
+/*
+  назначение текущего дисковода
+  на входе:
+     nDisk - номер дисковода: 0 - A, 1 - B, etc...
+*/
+Set$Drv: procedure(nDisk) external;
+  declare
+    nDisk byte;
+end;
+
+/*
+  установка user-области
+  на входе:
+     nUser  - номер области [0..15]
+*/
+Set$Usr: procedure(nUser) external;
+  declare
+    nUser byte;
+end;
+
+/*
+  возвращает номер текущей user-области
+*/
+Get$Usr: procedure byte external;
+end;
+
+
+
+
+/*
+  поиск первого вхождения файлов по маске
+  на входе:
+     nDrive - диск (0 - текущий, 1 - A, 2 - B, etc.)
+     FName  - имя файла в формат CP/M ('FILENAMEEXT')
+  на выходе:
+     NULL  - ничего не нашли, иначе адрес на запись о найденном файле
+*/
+Find$First: procedure(nDrive, FName) address external;
+  declare
+    nDrive byte,
+    FName  address;
+end;
+
+Find$Next: procedure address external;
+end;
+
+
+/*
+  возвращает размер файла в секторах по 128 байт
+*/
+fSize: procedure(fName) address external;
+  declare
+    fName address;
+end;
+
+/*
+  открытие файла (имя в формате CP/M: 'FILENAMEEXT')
+  на выходе:
+     0 - ошибка открытия, иначе успешно
+*/
+fOpen: procedure(nDrive, fName) byte external;
+  declare
+    nDrive byte,
+    fName  address;
+end;
+
+/*
+  создание файла
+  на выходе:
+     0 - ошибка создания, иначе успешно
+
+  WARNING! наличие существующего файла система не проверяет, поэтому
+           нужно самому в этом удостовериться и удалить, иначе
+           будет создан дубликат с таким же именем!
+*/
+fCreate: procedure(nDrive, fName) byte external;
+  declare
+    nDrive byte,
+    fName  address;
+end;
+
+/*
+  удаление файла
+  на выходе:
+     A  - 0: ошибка удаления
+*/
+fDelete: procedure(nDrive, fName) byte external;
+  declare
+    nDrive byte,
+    fName  address;
+end;
+
+
+fClose: procedure external;
+end;
+
+
+/*
+  чтение из открытого файла
+  на входе:
+     Buf$Ptr - буфер
+     Size    - размер в секторах по 128 байт
+  на выходе:
+     флаг завершения: 0 - ошибка, -1 - все успешно считалось
+*/
+fRead: procedure(Buf$Ptr, Size) byte external;
+  declare
+    Buf$Ptr address,
+    Size address;
+end;
+
+
+/*
+  запись в открытый файл
+  на входе:
+     Buf$Ptr - буфер
+     Size    - размер в секторах по 128 байт
+  на выходе:
+     флаг завершения: 0 - ошибка, -1 - все успешно записано
+*/
+fWrite: procedure(Buf$Ptr, Size) byte external;
+  declare
+    Buf$Ptr address,
+    Size address;
+end;
+

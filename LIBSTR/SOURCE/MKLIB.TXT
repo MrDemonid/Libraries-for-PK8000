@@ -1,0 +1,4 @@
+CREATE :f2:string.lib
+ADD :f1:memcmp.obj,:f1:memcpy.obj,:f1:memset.obj,:f1:strcpy.obj,:f1:strlen.obj TO :f2:string.lib
+ADD :f1:nbuf.obj,:f1:bth.obj,:f1:utoa.obj,:f1:utoh.obj,:f1:btoh.obj TO :f2:string.lib
+EXIT

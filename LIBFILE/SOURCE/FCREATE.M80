@@ -1,0 +1,44 @@
+        name    fCreate
+
+        public  fCreate
+
+
+        cseg
+
+        extrn   SetDrv
+        extrn   MkFCB
+        extrn   fioreturn
+
+
+$include (:F1:cpm.i80)
+
+
+;------------------------------------------------------------------------
+; создание файла
+;------------------------------------------------------------------------
+; на входе:
+;    C  - номер устройства (0 - A, 1 - B, etc.)
+;    DE - имя файла в формат CP/M ('FILENAMEEXT')
+; на выходе:
+;    A  - 0: ошибка создания
+;
+; WARNING! наличие существующего файла система не проверяет, поэтому
+;          нужно самому в этом удостовериться и удалить, иначе
+;          будет создан дубликат с таким же именем!
+fCreate:
+        lda     CURDEV
+        ani     0Fh
+        cmp     C
+        jz      @fofcb
+        push    B
+        push    D
+        call    SetDrv
+        pop     D
+        pop     B
+    @fofcb:
+        inr     C
+        call    MkFCB
+        mvi     C, 22
+        call    5
+        jmp     fioreturn
+end

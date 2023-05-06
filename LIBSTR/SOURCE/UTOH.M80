@@ -1,0 +1,28 @@
+        name    utoh
+
+        public  utoh
+
+        cseg
+
+        extrn   bth
+        extrn   BufNum
+
+;------------------------------------------------------------------------
+; преобразует слово в hex-строку
+;------------------------------------------------------------------------
+; на входе:
+;   BC  - слово
+; на выходе:
+;    HL - буфер
+utoh:
+        lxi     D, BufNum
+        mov     A, B
+        call    bth
+        mov     A, C
+        call    bth
+        xra     A
+        stax    D
+        lxi     H, BufNum
+        ret
+
+end

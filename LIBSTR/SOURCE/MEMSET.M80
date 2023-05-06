@@ -1,0 +1,30 @@
+        name    memset
+        public  memset
+
+        cseg
+
+
+;------------------------------------------------------------------------
+; заполнение блока памяти символом
+;------------------------------------------------------------------------
+; на входе:
+;    [SP+2] - address memory
+;    BC     - count
+;    E      - char
+; на выходе:
+;    HL     - address memory
+memset:
+        mov     A, E            ; BC - count, A - char
+        pop     D
+        pop     H               ; HL - address memory
+        push    D
+        mov     E, A            ; E - char
+    @msetl:
+        mov     A, C
+        ora     B
+        rz
+        mov     M, E
+        inx     H
+        dcx     B
+        jmp     @msetl
+end

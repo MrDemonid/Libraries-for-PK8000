@@ -1,0 +1,34 @@
+        name    SetUsr
+        public  SetUsr
+
+        cseg
+
+
+$include (:F1:cpm.i80)
+
+;------------------------------------------------------------------------
+; установка user-области
+;------------------------------------------------------------------------
+; на входе:
+;    C  - номер области [0..15]
+SetUsr:
+        mov     E, C            ; E = UserNo
+        mov     A, C
+        ral
+        ral
+        ral
+        ral
+        ani     0F0h
+        mov     C, A
+        lda     CURDEV
+        mov     B, A
+        ani     0F0h
+        cmp     C
+        rz
+        mov     A, B
+        ani     0Fh
+        ora     C
+        sta     CURDEV
+        mvi     C, 32
+        jmp     5
+end

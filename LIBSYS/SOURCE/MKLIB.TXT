@@ -1,0 +1,4 @@
+CREATE :f2:system.lib
+ADD :F1:vector.obj,:F1:eirq.obj,:F1:keyb.obj TO :f2:system.lib
+ADD :F1:cpm.obj,:F1:beep.obj TO :f2:system.lib
+EXIT

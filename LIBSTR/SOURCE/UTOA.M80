@@ -1,0 +1,63 @@
+        name    utoa
+
+        public  utoa
+
+
+        extrn   BufNum
+
+
+        cseg
+
+
+;------------------------------------------------------------------------
+; перевод беззнакового числа в строку
+;------------------------------------------------------------------------
+; на входе:
+;    BC         - 16-битное число
+; на выходе:
+;    HL         - буфер со строкой
+utoa:
+        mov     L, C
+        mov     H, B
+        lxi     D, BufNum
+        mvi     A, '0'          ; флаг пропуска первых нулей
+        lxi     B, -10000
+        call    @@dectoa
+        lxi     B, -1000
+        call    @@dectoa
+        lxi     B, -100
+        call    @@dectoa
+        lxi     B, -10
+        call    @@dectoa
+        mov     A, L
+        ori     '0'
+        stax    D
+        inx     D
+        xra     A
+        stax    D
+        lxi     H, BufNum
+        ret
+  @@dectoa:
+        push    D
+        mov     D, A
+        mvi     A, '0'-1
+    @@decialoop:
+        inr     A
+        dad     B
+        jc      @@decialoop
+        push    PSW
+        mov     A, L
+        sbb     C
+        mov     L, A
+        mov     A, H
+        sbb     B
+        mov     H, A
+        pop     PSW
+        cmp     D
+        pop     D
+        rz
+        stax    D
+        inx     D
+        mvi     A, 0FFh         ; закончили пропуск нулей
+        ret
+end

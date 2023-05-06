@@ -1,0 +1,165 @@
+/*
+  Ненужные функции закоментировать, иначе они будут добавлены
+  в результатирующий файл программы.
+*/
+
+/*
+  Библиотека для графического видеорежима 2
+*/
+
+
+
+/*
+  байт аттрибута для вывода текста
+*/
+declare
+  bTextAttr byte external;
+
+
+
+/*
+  установка видеорежима 2
+*/
+vidInit: procedure external;
+end;
+
+/*
+  возврат в видеорежим 0, используемый CP/M
+*/
+vidDone: procedure external;
+end;
+
+
+/*
+  установка дефолтного фонта из BIOS
+  на входе:
+     tmpMem - адрес временного буфера, размером не менее 26 байт
+              и расположенный с адреса 4000h и выше
+*/
+vidSetDefFont: procedure(tmpMem) external;
+  declare
+    tmpMem address;
+end;
+
+
+/*
+  возвращает адрес видеопамяти в массиве изображения, по заданным
+  координатам буфера экрана (x:[0..31], y:[0..23])
+*/
+vidGetAddr: procedure(x, y) address external;
+  declare
+    x byte,
+    y byte;
+end;
+
+/*
+  возвращает адрес видеопамяти в массиве цвета, по заданным
+  координатам буфера экрана (x:[0..31], y:[0..23])
+*/
+vidColAddr: procedure(x, y) address external;
+  declare
+    x byte,
+    y byte;
+end;
+
+/*
+  возвращает адрес битового образа символа в дефолтном фонте
+*/
+vidGetFont: procedure(chr) address external;
+  declare
+    chr byte;
+end;
+
+
+
+
+/*
+  очистка экрана для всех видеорежимов (для реж. 2 очищается
+  массив изображения (знакогенераторов))
+*/
+vidCls: procedure external;
+end;
+
+/*
+  очистка массива цвета заданным аттрибутом цвета фона и текста
+*/
+vidClsCol: procedure(Col) external;
+  declare
+    Col byte;
+end;
+
+/*
+  установка цвета для одной линии экрана
+*/
+vidClrLine: procedure(vidAdr, len, col) external;
+  declare
+    vidAdr address,
+    len byte,
+    col byte;
+end;
+
+
+/*
+  инициализация буфера экрана дефолтным значением
+*/
+vidInitScrBuf: procedure external;
+end;
+
+
+
+
+/*
+  Установка курсора в заданную позицию
+*/
+vidGotoXY: procedure(x, y) external;
+  declare
+    (x, y) byte;
+end;
+
+
+vidGetX: procedure byte external;
+end;
+
+vidGetY: procedure byte external;
+end;
+
+
+/*
+  Вывод символа в текущую позицию и текущим цветом
+*/
+vidOutChar: procedure(ch) external;
+  declare
+    ch byte;
+end;
+
+/*
+  Вывод строки на экран в текущие координаты
+*/
+vidOutString: procedure(Str$Ptr) external;
+  declare
+    Str$Ptr address;
+end;
+
+/*
+  Вывод строки на экран в заданные координаты [0..31, 0..23]
+*/
+vidOutStringXY: procedure(x, y, Str$Ptr) external;
+  declare
+    (x, y) byte,
+    Str$Ptr address;
+end;
+
+
+
+/*
+  Вывод спрайта на экран в заданные координаты [0..31, 0..23]
+    Формат спрайта:
+    --------------
+    8 байт - битовый образ 8x8
+    8 байт - цвет фона и пикселей для каждой строки образа
+*/
+vidPutSprite: procedure(x, y, ptr$Bmp) external;
+  declare
+    (x, y) byte,
+    ptr$Bmp address;
+end;

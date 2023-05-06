@@ -1,0 +1,72 @@
+/*
+  кода функциональных клавиш (номер строки матрицы * 8 + номер бита в строке)
+*/
+declare KEY$ESC    literally '0BAh',
+        KEY$ENTER  literally '0BFh',
+        KEY$TAB    literally '0BBh',
+        KEY$BKSPC  literally '0BDh',
+        KEY$LEFT   literally '0C4h',
+        KEY$UP     literally '0C5h',
+        KEY$DOWN   literally '0C6h',
+        KEY$RIGHT  literally '0C7h',
+        KEY$PgUP   literally '0CEh',
+        KEY$PgDOWN literally '0CDh',
+        KEY$F1     literally '0B5h',
+        KEY$F2     literally '0B6h',
+        KEY$F3     literally '0B7h',
+        KEY$F4     literally '0B8h',
+        KEY$F5     literally '0B9h',
+        KEY$F6     literally '0D5h',
+        KEY$F7     literally '0D6h',
+        KEY$F8     literally '0D7h',
+        KEY$F9     literally '0D8h',
+        KEY$F10    literally '0D9h',
+
+        KEY$SPACE  literally ''' ''',
+        KEY$0      literally '''0''',
+        KEY$1      literally '''1''',
+        KEY$2      literally '''2''',
+        KEY$3      literally '''3''',
+        KEY$4      literally '''4''',
+        KEY$5      literally '''5''',
+        KEY$6      literally '''6''',
+        KEY$7      literally '''7''',
+        KEY$8      literally '''8''',
+        KEY$9      literally '''9''',
+        KEY$D      literally '''D''',
+        KEY$L      literally '''L''',
+        KEY$N      literally '''N''',
+        KEY$P      literally '''P''',
+        KEY$R      literally '''R''',
+        KEY$S      literally '''S''',
+        KEY$U      literally '''U''',
+        KEY$W      literally '''W''',
+        KEY$Y      literally '''Y''';
+
+
+
+KbInit: procedure external;
+end;
+
+KbDone: procedure external;
+end;
+
+/*
+  проверка наличия в буфере клавиатуры кода нажатой клавиши
+  на выходе:
+     0 - буфер пуст
+*/
+KbHit: procedure byte external;
+end;
+
+/*
+  чтение символа с клавиатуры с ожиданием (если буфер был пуст)
+*/
+GetCh: procedure byte external;
+end;
+
+/*
+  очистка буфера клавиатуры
+*/
+kbFlash: procedure external;
+end;

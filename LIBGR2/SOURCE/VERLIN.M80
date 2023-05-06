@@ -1,0 +1,60 @@
+;------------------------------------------------------------------------
+; вывод повторяющегося символа в заданный адрес видеопамяти
+;------------------------------------------------------------------------
+; на входе:
+;       A       - символ
+;       DE      - адрес в массиве изображения
+;       C       - count
+;       grFont  - фонт 8x8
+;       curCol  - текущий цвет фона и текста
+; save: BC, HL
+VerLin:
+        push    B
+        push    H
+        ; получаем адрес символа в фонте
+        mov     L, A
+        mvi     H, 0
+        dad     H               ; *2
+        dad     H               ; *4
+        dad     H               ; *8
+        mov     A, C
+        lxi     B, GRFONT
+        dad     B               ; HL = grFont[symbol]
+        mov     C, A
+        ; DE - vidmem
+        ; HL - image
+        ;  C - count
+    @vrlsl:
+        ; копируем один символ
+        mvi     B, 8
+    @vrlsc:
+        mov     A, M
+        inx     H
+        stax    D
+        inx     D
+        dcr     B
+        jnz     @vrlsc
+        ; корректируем цвет
+        lxi     H, -8
+        dad     D
+        mov     A, H
+        xri     20h
+        mov     H, A            ; HL - адрес символа в массиве цвета
+        lda     curCol
+        mvi     B, 8
+    @vrhrc:
+        mov     M, A
+        inx     H
+        dcr     B
+        jnz     @vrhrc
+        ; переходим к копированию в след. позицию
+        lxi     H, 32*8-8
+        dad     D
+        xchg                    ; DE - next vidmem
+        lxi     H, -32*8
+        dad     D               ; HL - prev vidmem
+        dcr     C
+        jnz     @vrlsl
+        pop     H
+        pop     B
+        ret

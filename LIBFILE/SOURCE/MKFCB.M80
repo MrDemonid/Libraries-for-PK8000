@@ -1,0 +1,46 @@
+        name    MkFCB
+
+        public  MkFCB
+
+
+        cseg
+
+
+$include (:F1:cpm.i80)
+
+
+;------------------------------------------------------------------------
+; заполнение структуры FCB (по дефолтному адресу 0x005C)
+;------------------------------------------------------------------------
+; на входе:
+;    C  - номер устройства (0 - текущий, 1 - A, 2 - B, etc.)
+;    DE - имя файла в формат CP/M ('FILENAMEEXT')
+; на выходе:
+;    DE - указатель на FCB
+MkFCB:
+        lxi     H, DEFFCB
+        push    H
+        ; set disk
+        mov     M, C
+        inx     H
+        ; copy file name
+        mvi     C, 11
+  @fname:
+        ldax    D
+        inx     D
+        mov     M, A
+        inx     H
+        dcr     C
+        jnz     @fname
+        ; обнуляем остальные поля
+        mvi     C, 36-12
+        xra     A
+    @fffsz:
+        mov     M, A
+        inx     H
+        dcr     C
+        jnz     @fffsz
+        pop     D
+        ret
+
+end

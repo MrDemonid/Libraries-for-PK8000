@@ -1,0 +1,5 @@
+CREATE :f2:fileio.lib
+ADD :f1:fclose.obj,:f1:fopen.obj,:f1:fcreate.obj,:f1:fdelete.obj,:f1:fread.obj,:f1:fwrite.obj TO :f2:fileio.lib
+ADD :f1:ffirst.obj,:f1:fnext.obj,:f1:fsize.obj,:f1:mkfcb.obj TO :f2:fileio.lib
+ADD :f1:setdrv.obj,:f1:seldrv.obj,:f1:setusr.obj,:f1:getusr.obj TO :f2:fileio.lib
+EXIT

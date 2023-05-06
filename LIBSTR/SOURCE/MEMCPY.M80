@@ -1,0 +1,30 @@
+        name    memcpy
+        public  memcpy
+
+        cseg
+
+
+
+;------------------------------------------------------------------------
+; копирование блока памяти
+;------------------------------------------------------------------------
+; на входе:
+;    [SP+2] - source
+;    BC     - dest
+;    DE     - count
+; на выходе:
+;    HL     - address memory
+memcpy:
+        pop     H               ; HL = return address
+        xthl                    ; HL - source
+    @mcpyl:
+        mov     A, E
+        ora     D
+        rz
+        mov     A, M
+        stax    B
+        inx     H
+        inx     B
+        dcx     D
+        jmp     @mcpyl
+end

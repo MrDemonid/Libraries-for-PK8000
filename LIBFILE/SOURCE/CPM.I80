@@ -1,0 +1,4 @@
+; system variables
+CURDEV  equ 4           ; current disk and user area
+DEFFCB  equ 5Ch         ; default FCB
+IOBUFF  equ 80h         ; default buffer DMA

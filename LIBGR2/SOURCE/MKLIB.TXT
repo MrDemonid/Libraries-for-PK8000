@@ -1,0 +1,4 @@
+CREATE :f2:video2.lib
+ADD :F1:video2.obj,:f1:outch.obj,:f1:outstr.obj,:f1:gotoxy.obj,:f1:getxy.obj TO :f2:video2.lib
+ADD :F1:bitmap.obj,:f1:clrln.obj,:f1:deffnt.obj TO :f2:video2.lib
+EXIT

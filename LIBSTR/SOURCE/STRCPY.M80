@@ -1,0 +1,24 @@
+        name    strcpy
+        public  strcpy
+
+        cseg
+
+;------------------------------------------------------------------------
+; копирование строки
+;------------------------------------------------------------------------
+; на входе:
+;    BC     - source
+;    DE     - dest
+; на выходе:
+;    HL     - address memory
+strcpy:
+        xchg                    ; HL - dest
+    @scpyl:
+        ldax    B
+        mov     M, A
+        ora     A
+        rz
+        inx     H
+        inx     B
+        jmp     @scpyl
+end

@@ -1,0 +1,43 @@
+        name gotoXY
+
+        cseg
+
+        public vidGotoXY
+
+
+
+$include (:f1:video2.i80)
+
+
+
+
+;------------------------------------------------------------------------
+; Установка курсора в заданную позицию
+;------------------------------------------------------------------------
+; на входе:
+;    C  - x
+;    E  - y
+vidGotoXY:
+        ; обрезаем координаты по границам экрана
+        lda     bLogWidth
+        dcr     A               ; A = maxX
+        cmp     C
+        jnc     @curxc          ; if (x > maxX) then
+        mov     C, A            ;     x = maxX
+    @curxc:
+        lda     bLogHeight
+        dcr     A
+        cmp     E
+        jnc     @curyc          ; if (y > maxY) then
+        mov     E, A            ;     y = maxY
+    @curyc:
+        ; сохраняем новые координаты
+        mov     L, C
+        mov     H, E
+        shld    bCurPosX
+        ret
+
+
+
+
+end

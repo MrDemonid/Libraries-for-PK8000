@@ -1,0 +1,23 @@
+        name Beep
+
+        cseg
+
+        public Beep
+
+
+
+Beep:
+        in      82h
+        mvi     B, 63
+    @loop:
+        mvi     C, 22
+    @wait:
+        dcr     C
+        jnz     @wait
+        xri     80h
+        out     82h
+        dcr     B
+        jnz     @loop
+        ret
+
+end

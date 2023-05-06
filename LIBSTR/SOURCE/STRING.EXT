@@ -1,0 +1,55 @@
+/*
+  Ненужные функции закоментировать, иначе они будут добавлены
+  в результатирующий файл программы.
+*/
+
+memset: procedure(Addr, Size, Char) external;
+  declare
+    Addr address,
+    Size address,
+    Char byte;
+end;
+
+memcpy: procedure(Src, Dst, Len) external;
+  declare
+    Src address,
+    Dst address,
+    Len address;
+end;
+
+memcmp: procedure(mem1, mem2, len) byte external;
+  declare
+    mem1 address,
+    mem2 address,
+    len byte;
+end;
+
+
+
+strcpy: procedure(Src, Dst) address external;
+  declare
+    Src address,
+    Dst address;
+end;
+
+strlen: procedure(Src) address external;
+  declare
+    Src address;
+end;
+
+
+
+utoa: procedure(wNum) address external;
+  declare
+    wNum address;
+end;
+
+utoh: procedure(wNum) address external;
+  declare
+    wNum address;
+end;
+
+btoh: procedure(bNum) address external;
+  declare
+    bNum byte;
+end;

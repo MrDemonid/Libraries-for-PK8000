@@ -1,0 +1,47 @@
+/*
+  Ненужные функции закоментировать, иначе они будут добавлены
+  в результатирующий файл программы.
+*/
+
+/*
+  Менеджер прерываний. Заменяет стандартный обработчик BIOS.
+*/
+
+InitIRQ: procedure external;
+end;
+
+DoneIRQ: procedure external;
+end;
+
+
+/*
+  Установка нового вектора прерывания
+  pVec  - адрес нового вектора
+  pSave - адрес для сохранения перехода на старый вектор (3 байта)
+*/
+SetVector: procedure(pVec, pSave) external;
+  declare
+    pVec address,
+    pSave address;
+end;
+
+/*
+  Удаление последнего вектора
+  pOldVec - адрес сохраненного вектора
+*/
+DelVector: procedure(pOldVec) external;
+  declare
+    pOldVec address;
+end;
+
+
+
+/*
+  Завершает текущий обработчик прерывания и
+  передает управление на другой вектор (pldVec)
+*/
+ExitIRQ: procedure(pldVec) external;
+  declare
+    pldVec address;
+end;
+

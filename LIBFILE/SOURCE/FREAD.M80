@@ -1,0 +1,70 @@
+        name    fRead
+
+        public  fRead
+
+
+        cseg
+
+
+$include (:F1:cpm.i80)
+
+;------------------------------------------------------------------------
+; чтение файла
+;------------------------------------------------------------------------
+; на входе:
+;    BC - буфер для чтения
+;    DE - размер в секторах
+; на выходе:
+;     A - флаг завершения: 0 - ошибка, -1 - все успешно считалось
+fRead:
+        ; ограничим размер файла 255 секторами (32640 bytes)
+        mov     A, D
+        ora     A
+        rnz
+        mov     A, E
+        ora     A
+        rz                      ; -> ошибка, нулевая длина
+        ; задаем буфер DMA
+        mov     E, C
+        mov     D, B
+        jmp     @frdsd
+
+    @frdlp:
+        ; читаем очередной сектор
+        lxi     D, DEFFCB
+        mvi     C, 20
+        call    5
+        ora     A
+        jnz     @frdqf
+        ; переходим к чтению следующего сектора
+        pop     PSW
+        pop     D               ; DE = bufAddr
+        dcr     A
+        jz      @frdqo
+        lxi     H, 128
+        dad     D
+        xchg                    ; DE = bufAddr+128
+    @frdsd:
+        ; устанавливаем буфер DMA
+        push    D
+        push    PSW
+        mvi     C, 26
+        call    5
+        jmp     @frdlp
+
+  @frdqf:
+        pop     D               ; очищаем стек
+        pop     D
+        xra     A
+        jmp     @frdxt
+  @frdqo:
+        ori     -1
+  @frdxt:
+        push    PSW
+        ; восстанавливаем дефолтный буфер DMA
+        lxi     D, IOBUFF
+        mvi     C, 26
+        call    5
+        pop     PSW
+        ret
+end

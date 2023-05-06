@@ -1,0 +1,149 @@
+        name    IRQManager
+
+        public  InitIRQ
+        public  DoneIRQ
+
+        public  SetVector
+        public  DelVector
+
+        cseg
+
+
+INTMGR  equ 0FEDCh      ; адрес менеджера IRQ
+INTJMP  equ 0F86Eh      ; переход на пользовательский обработчик прерывания
+INTADR  equ 0F86Fh      ; адрес пользовательского обработчика
+
+
+;------------------------------------------------------------------------
+; Инициализация системы IRQ
+;------------------------------------------------------------------------
+InitIRQ:
+        ; переносим обработчик в верхние адреса
+        lxi     D, IrqManager
+        lxi     H, INTMGR
+        mvi     C, IrqMngEnd-IrqManager
+    @sirql:
+        ldax    D
+        mov     M, A
+        inx     D
+        inx     H
+        dcr     C
+        jnz     @sirql
+        ; сохраняем старый
+        lda     INTJMP
+        sta     OldVecJmp
+        lhld    INTADR
+        shld    OldVecAddr
+        ; ставим свой
+        di
+        mvi     A, 0C3h         ; jmp
+        sta     INTJMP
+        lxi     H, INTMGR
+        shld    INTADR
+        ei
+        ret
+
+;------------------------------------------------------------------------
+; Удаление своей системы IRQ
+;------------------------------------------------------------------------
+DoneIRQ:
+        di
+        lda     OldVecJmp
+        sta     INTJMP
+        lhld    OldVecAddr
+        shld    INTADR
+        ei
+        ret
+
+;------------------------------------------------------------------------
+; Установка нового вектора прерывания
+;------------------------------------------------------------------------
+; на входе:
+;    BC - адрес нового вектора
+;    DE - адрес для сохранения перехода на старый вектор (3 байта)
+SetVector:
+        di
+        ; сохраняем старый вектор
+        push    B
+        lxi     H, UserVectors
+        mvi     C, 3
+    @svecs:
+        mov     A, M
+        stax    D
+        inx     H
+        inx     D
+        dcr     C
+        jnz     @svecs
+        ; устанавливаем новый
+        pop     H
+        mvi     A, 0C3h
+        sta     UserVectors
+        shld    UserVectors+1
+        ei
+        ret
+
+;------------------------------------------------------------------------
+; Удаление последнего вектора
+;------------------------------------------------------------------------
+; на входе:
+;    BC - адрес сохраненного вектора
+DelVector:
+        di
+        lxi     H, UserVectors
+        mvi     E, 3
+    @dvecr:
+        ldax    B
+        mov     M, A
+        inx     B
+        inx     H
+        dcr     E
+        jnz     @dvecr
+        ei
+        ret
+
+
+
+;------------------------------------------------------------------------
+; Менеджер пользовательских прерываний, вызывается из ПЗУ
+; при каждом прерывании
+;------------------------------------------------------------------------
+IrqManager:
+        ; убираем из стека адрес возврата в функцию BIOS,
+        ; теперь по RET будет выход из обработчика IRQ, пропустив
+        ; код обработчика BIOS
+        xthl
+        pop     H
+        ; сохраняем состояние регистров
+        push    H
+        push    D
+        push    B
+        push    PSW
+        ; делаем доступной всю память
+        in      80h
+        push    PSW
+        mvi     A, 0FFh
+        out     80h
+        ; вызываем цепочку обработчиков прерывания
+        call    UserVectors     ; вызов пользовательских подпрограмм
+        pop     PSW
+        out     80h
+        pop     PSW
+        pop     B
+        pop     D
+        pop     H
+        ei
+        ret
+IrqMngEnd:
+
+UserVectors:
+        ret
+        ret
+        ret
+
+
+        dseg
+
+  ; адрес старого обработчика прерывания
+  OldVecJmp:    ds 1
+  OldVecAddr:   ds 2
+end

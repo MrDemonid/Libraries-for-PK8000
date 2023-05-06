@@ -1,0 +1,323 @@
+$title  ('Keyboard scanner')
+        NAME    KEYB
+
+        CSEG
+
+
+        extrn SetVector
+        extrn DelVector
+
+
+        public KbHit
+        public GetCh
+
+        public KbInit
+        public KbDone
+
+        public kbFlash
+
+
+
+AUTOTIME        equ 50/5        ; задержка включения автоповтора
+AUTOSPD         equ 5           ; скорость автоповтора = (50 / AUTOSPD) нажатий в секунду
+
+
+
+;------------------------------------------------------------------------
+; Инициализация драйвера клавиатуры
+;------------------------------------------------------------------------
+KbInit:
+        ; очищаем буфер клавиатуры
+        lxi     H, keyBuffer
+        shld    ptrBufFirst
+        shld    ptrBufLast
+        ; и флаги
+        xra     A
+        sta     fPressed
+        sta     fShift
+        ; устанавливаем обработчик прерывания
+        lxi     B, KEYISR
+        lxi     D, OLDISR
+        call    SetVector
+        ret
+
+;------------------------------------------------------------------------
+; Удаление драйвера
+;------------------------------------------------------------------------
+KbDone:
+        ; ждем отпускания всех клавиш
+        lda     fPressed
+        mov     C, A
+        lda     fShift
+        ora     C
+        jnz     KbDone
+        ; снимаем обработчик
+        di
+        lxi     B, OLDISR
+        call    DelVector
+        ; очищаем очередь клавиатуры
+        lxi     H, 0FB85h
+        shld    0FA2Ch
+        shld    0FA2Ah
+        ei
+        ret
+
+kbFlash:
+        di
+        lhld    ptrBufLast
+        shld    ptrBufFirst
+        ei
+        ret
+
+;------------------------------------------------------------------------
+; проверяет наличие кода в буфере клавиатуры
+;------------------------------------------------------------------------
+; на выходе:
+;    A  - 0: буфер пуст, 1: есть символ в буфере
+KbHit:
+        lhld    ptrBufLast
+        xchg
+        lhld    ptrBufFirst
+        call    CompareWord
+        mvi     A, 0
+        rz
+        inr     A
+        ret
+
+
+;------------------------------------------------------------------------
+; чтение символа с клавиатуры с ожиданием
+;------------------------------------------------------------------------
+; на выходе:
+;    A  - символьный вид нажатой клавиши
+GetCh:
+        call    KbHit
+        ora     A
+        jz      GetCh
+        lhld    ptrBufFirst
+        mov     B, M
+        inx     H
+        lxi     D, endBuffer
+        call    CompareWord
+        di
+        jnz     @gtchd
+        lxi     H, keyBuffer
+    @gtchd:
+        shld    ptrBufFirst
+        mov     A, B
+        ei
+        ret
+
+
+
+;------------------------------------------------------------------------
+; сравнение двух 16-битных слов HL и DE
+;------------------------------------------------------------------------
+; на выходе: флаги как при сравнении 8-битных данных
+CompareWord:
+        mov     A, H            ; сравниваем старшие байты
+        sub     D
+        rnz                     ; if (z==0) exit
+        mov     A, L            ; сравниваем младшие байты
+        sub     E
+        ret
+
+
+;------------------------------------------------------------------------
+; чтение строки клавиатурной матрицы
+;------------------------------------------------------------------------
+; на входе:
+;    A  - номер строки матрицы [0..9]
+; на выходе:
+;    A  - строка (единичные биты - нажатые клавиши)
+;    C  - номер строки матрицы [0..9]
+kbColumn:
+        ani     0Fh
+        mov     C, A
+        in      82h
+        ani     0F0h
+        ora     C
+        out     82h
+        in      81h
+        cma
+        ret
+
+
+;------------------------------------------------------------------------
+; преобразование строки матрицы и бита в код клавиши и
+; добавление его в буфер клавиатуры
+;------------------------------------------------------------------------
+; на входе:
+;    keyColumn  - номер строки
+;    keyMask    - крайний справа бит строки матрицы
+kbPut:
+        lda     keyColumn
+        ani     0Fh
+        rlc
+        rlc
+        rlc
+        mov     E, A            ; E = column * 8
+        lda     keyMask
+        ana     A
+        rz
+        mvi     C, 0
+    @cbclp:
+        rrc
+        jc      @cbcdn
+        inr     C
+        jmp     @cbclp
+    @cbcdn:
+        mov     A, C
+        add     E
+        ; теперь переводим сканкод в символьный вид
+        mov     L, A            ; HL - скан-код клавиши
+        mvi     H, 0
+        lxi     D, tabXlat
+        lda     fShift
+        ora     A
+        jz      @gtxlat
+        lxi     D, tabSXlat
+    @gtxlat:
+        dad     D
+        mov     A, M            ; A - символьный код клавиши
+        ; добавляем в буфер клавиатуры
+        lhld    ptrBufLast
+        lxi     D, endBuffer
+        mov     M, A
+        inx     H
+        call    CompareWord
+        jnz     @kbpd
+        lxi     H, keyBuffer
+    @kbpd:
+        shld    ptrBufLast
+        ret
+
+
+tabXlat:
+        db ' ','!','"','#','$','%','&',27h
+        db '(',')',',','-','.',':',';','?'
+        db '{','|','}','~',' ','`','a','b'
+        db 'c','d','e','f','g','h','i','j'
+        db 'k','l','m','n','o','p','q','r'
+        db 's','t','u','v','w','x','y','z'
+        db 0B0h,0B1h,0B2h,0B3h,0B4h,0B5h,0B6h,0B7h
+        db 0B8h,0B9h,0BAh,0BBh,0BCh,0BDh,0BEh,0BFh ; db 0B8h,0B9h,1Bh,09h,0BCh,08h,0BEh,0Dh
+        db ' ',0C1h,0C2h,0C3h,0C4h,0C5h,0C6h,0C7h
+        db 0C8h,0C9h,0CAh,0CBh,0CCh,0CDh,0CEh,0CFh
+
+tabSXlat:
+        db '0','1','2','3','4','5','6','7'
+        db '8','9','<','=','>','*','+','/'
+        db '[','\',']','^','_','@','A','B'
+        db 'C','D','E','F','G','H','I','J'
+        db 'K','L','M','N','O','P','Q','R'
+        db 'S','T','U','V','W','X','Y','Z'
+        db 0B0h,0B1h,0B2h,0B3h,0B4h,0D5h,0D6h,0D7h
+        db 0D8h,0D9h,0BAh,0BBh,0BCh,0BDh,0BEh,0BFh
+        db ' ',0C1h,0C2h,0C3h,0C4h,0C5h,0C6h,0C7h
+        db 0C8h,0C9h,0CAh,0CBh,0CCh,0CDh,0CEh,0CFh
+
+
+
+;------------------------------------------------------------------------
+; Обработчик прерывания - сканер матрицы клавиатуры
+;------------------------------------------------------------------------
+KEYISR:
+        ; сначала обновляем состояние клавиши 'РГ'
+        mvi     A, 6
+        call    kbColumn
+        ani     01h
+        sta     fShift
+        ; теперь проверяем на предмет автоповтора
+        lda     fPressed
+        ora     A
+        jnz     @kbRepeat
+        ; нет нажатых клавиш, сканируем всю матрицу
+        mvi     C, 0
+  @kbScanLoop:
+        mov     A, C
+        cpi     10
+        jnc     OLDISR          ; ничего не нашли, уходим
+        call    kbColumn
+        ora     A
+        jnz     @kbFound
+    @kbNext:
+        inr     C
+        jmp     @kbScanLoop
+    @kbFound:   ; что-то нажали
+        ; сначала проверяем, не был ли это РГ?
+        mov     B, A
+        mov     A, C
+        cpi     6
+        jnz     @kbStore
+        mov     A, B
+        ani     0FEh
+        jz      @kbNext         ; это был только РГ, продолжаем поиск
+    @kbStore:
+        ; выделяем крайний справа бит = x & (-x)
+        mov     A, B
+        cma
+        inr     A
+        ana     B
+        ; и сохраняем полученную маску для выделения этого бита
+        sta     keyMask
+        mov     A, C
+        sta     keyColumn
+        mvi     A, AUTOTIME
+        sta     keyTime         ; выставляем время до следующего автонажатия
+        mvi     A, 1
+        sta     fPressed        ; устанавливаем флаг нажатия
+
+  @kbInsert:     ; отправляет в буфер код нажатой клавиши
+        call    kbPut
+        jmp     OLDISR
+
+  @kbRepeat:    ; уже имеется нажатая клавиша
+        ; проверяем ее текущее состояние
+        lda     keyColumn
+        call    kbColumn
+        mov     B, A
+        lda     keyMask
+        ana     B
+        jz      @kbRelease
+        ; проверяем не пора ли включать автоповтор?
+        lda     keyTime
+        dcr     A
+        sta     keyTime
+        jnz     OLDISR
+        ; время ожидания истекло, заносим скан-код в буфер клавиатуры
+        mvi     A, AUTOSPD
+        sta     keyTime
+        jmp     @kbInsert
+
+  @kbRelease:   ; отжали клавишу
+        xra     A
+        sta     fPressed        ; снимаем флаг нажатия
+OLDISR: ; jmp to old INT
+        ret
+        ret
+        ret
+
+
+
+DSEG
+
+;------------------------------------------------------------------------
+; Данные сканера
+;------------------------------------------------------------------------
+
+  fPressed:     ds 1            ; флаг наличия нажатой кнопки
+  keyMask:      ds 1            ; бит нажатой клавиши
+  keyColumn:    ds 1            ; строка нажатой клавиши
+  keyTime:      ds 1            ; таймер для отслеживания зедержек автоповтора
+
+  fShift:       ds 1            ; флаг нажатия РГ (shift)
+
+  keyBuffer:    ds 8            ; буфер приема скан-кодов (на 8 мест)
+  endBuffer:
+
+
+  ptrBufFirst:  ds 2            ; указатель на начало буфера
+  ptrBufLast:   ds 2            ; указатель на конец буфера
+
+END

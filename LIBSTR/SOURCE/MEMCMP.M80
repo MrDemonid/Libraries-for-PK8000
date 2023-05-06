@@ -1,0 +1,36 @@
+        name    memcmp
+        public  memcmp
+
+        cseg
+
+
+;------------------------------------------------------------------------
+; сравнение блоков памяти
+;------------------------------------------------------------------------
+; на входе:
+;    [SP+2] - mem1
+;    BC     - mem2
+;     E     - count
+; на выходе:
+;                | C Z
+;    ------------+----
+;    mem2 = mem1 | 0 1
+;    mem2 > mem1 | 0 0
+;    mem2 < mem1 | 1 0
+;    A:
+;    mem2 = mem1 | A = 0
+;    mem2 > mem1 | A > 0
+;    mem2 < mem1 | A < 0
+memcmp:
+        pop     H               ; HL = return address
+        xthl                    ; HL - source
+    @mcmyl:
+        ldax    B
+        sub     M
+        rnz
+        inx     B
+        inx     H
+        dcr     E
+        jnz     @mcmyl
+        ret
+end

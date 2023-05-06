@@ -1,0 +1,89 @@
+        name OutChar
+
+        cseg
+
+        public vidOutChar       ; Вывод символа в текущую позицию и теукщим цветом
+        public vidOutChrOfs     ; Вывод символа в задданную видеопамять (не для PL/M)
+
+        extrn  vidGetAddr
+        extrn  vidGotoXY
+        extrn  bTextAttr
+
+
+
+$include (:f1:video2.i80)
+
+
+
+
+;------------------------------------------------------------------------
+; Вывод символа в текущую позицию и текущим цветом
+;------------------------------------------------------------------------
+; на входе:
+;    C  - символ
+; save: none
+vidOutChar:
+        mov     B, C            ; save char
+        lda     bCurPosX
+        mov     C, A
+        lda     bCurPosY
+        mov     E, A
+        call    vidGetAddr
+        xchg                    ; DE - текущий видеоадрес
+        mov     A, B
+        call    vidOutChrOfs
+        lda     bCurPosX
+        mov     C, A
+        lda     bCurPosY
+        mov     E, A
+        inr     C
+        jmp     vidGotoXY
+
+;------------------------------------------------------------------------
+; Вывод символа в задданную видеопамять (для внутреннего пользования)
+;------------------------------------------------------------------------
+; на входе:
+;       A       - символ
+;       DE      - адрес в массиве изображения
+;       pFont8x8  - фонт 8x8
+;       bTextAttr  - текущий цвет фона и текста
+; save: BC, HL
+vidOutChrOfs:
+        push    B
+        push    H
+
+        mov     L, A            ; HL = symbol
+        mvi     H, 0
+
+        ; вычисляем адрес символа в фонте
+        dad     H               ; *2
+        dad     H               ; *4
+        dad     H               ; *8
+        lxi     B, pFont8x8
+        dad     B               ; HL = pFont8x8[symbol]
+        ; копируем битовый образ символа в массив изображения
+        mvi     B, 8
+  @ochrl:                       ; цикл вывода одного символа
+        mov     A, M
+        stax    D
+        inx     D
+        inx     H
+        dcr     B
+        jnz     @ochrl
+        lxi     H, -8
+        dad     D               ; HL - addr color array
+        ; корректируем цвет
+        mov     A, H
+        xri     20h
+        mov     H, A            ; HL - адрес символа в массиве цвета
+        lda     bTextAttr
+        mvi     C, 8
+    @ochrc:
+        mov     M, A
+        inx     H
+        dcr     C
+        jnz     @ochrc
+        pop     H
+        pop     B
+        ret
+end

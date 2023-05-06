@@ -1,0 +1,10 @@
+        name CPM
+
+
+        public Exit
+
+        cseg
+
+Exit equ 0
+
+end
